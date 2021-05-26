@@ -9,13 +9,42 @@ dt.format('m/d/Y H:M:S');
 
 // status - booked, cancelled, completed
 
-const find_drivers = async (req, res) => {
+
+// var Promise = require("bluebird");
+// import * as Promise from "bluebird";
+
+
+
+// const find_drivers = async (req, res) => {
+//     try {
+//         var sql_query = 'select driverID, vehicleID from drivers where driverID not in \
+//         (select driverID from ride where status="booked")'
+//         var values = []
+
+//         let rows = await execute_query(sql_query, values)
+//         if (rows.length === 0) {
+//             return responses.sendServerResponse(res, "No driver found", constants.STATUS_CODES.NOT_FOUND)
+//         }
+//         else {
+//             return responses.sendServerResponse(res, rows, constants.STATUS_CODES.SUCCESS)
+//         }
+//     }
+//     catch (error) {
+//         return res.json(error)
+//     }
+// }
+
+
+
+
+
+function* find_drivers(req, res) {
     try {
         var sql_query = 'select driverID, vehicleID from drivers where driverID not in \
         (select driverID from ride where status="booked")'
         var values = []
 
-        let rows = await execute_query(sql_query, values)
+        let rows = yield execute_query(sql_query, values)
         if (rows.length === 0) {
             return responses.sendServerResponse(res, "No driver found", constants.STATUS_CODES.NOT_FOUND)
         }
@@ -28,16 +57,45 @@ const find_drivers = async (req, res) => {
     }
 }
 
+
+
 // there can be multiple middleware but single handler function
 
-const check_rides = async (req, res) => {
+// const check_and_book_rides = async (req, res) => {
+//     try {
+//         var passengerID = req["passengerID"];
+//         var driverID = req.body["driverID"];
+//         var vehicleID = req.body["vehicleID"];
+//         var sql_query = 'select * from ride where passengerID=? and status="booked"';
+//         var values = [passengerID]
+//         let rows = await execute_query(sql_query, values);
+
+//         if (rows.length !== 0) {
+//             throw new Error('You have already booked a ride');
+//         }
+
+//         var sql_query = 'insert into ride values(?, ?, ?, ?, ?, ?)';
+//         var values = [driverID, vehicleID, passengerID, "booked", new Date(dt.now()), null];
+
+
+//         var ride = await execute_query(sql_query, values);
+//         console.log(ride);
+//         return res.json(ride)
+//     } catch (error) {
+//         return res.json(error);
+//     }
+// }
+
+
+
+function* check_and_book_rides(req, res) {
     try {
         var passengerID = req["passengerID"];
         var driverID = req.body["driverID"];
         var vehicleID = req.body["vehicleID"];
         var sql_query = 'select * from ride where passengerID=? and status="booked"';
         var values = [passengerID]
-        let rows = await execute_query(sql_query, values);
+        let rows = yield execute_query(sql_query, values);
 
         if (rows.length !== 0) {
             throw new Error('You have already booked a ride');
@@ -47,13 +105,24 @@ const check_rides = async (req, res) => {
         var values = [driverID, vehicleID, passengerID, "booked", new Date(dt.now()), null];
 
 
-        var ride = await execute_query(sql_query, values);
+        var ride = yield execute_query(sql_query, values);
         console.log(ride);
         return res.json(ride)
     } catch (error) {
         return res.json(error);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 const cancel_ride = async (req, res) => {
@@ -84,4 +153,4 @@ const completed_ride = async (req, res) => {
 }
 
 
-module.exports = { find_drivers, check_rides, cancel_ride, completed_ride }
+module.exports = { find_drivers, check_and_book_rides, cancel_ride, completed_ride }
